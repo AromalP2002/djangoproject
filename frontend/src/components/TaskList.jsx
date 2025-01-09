@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import axios from 'axios'
 
+ 
 function TaskList(){
     const [data,setData]=useState([])
     const[editing,setEditing] = useState(false)
@@ -15,6 +16,14 @@ function TaskList(){
         setEditing(true)
         setEditDtls(task)
     }
+    const updatedtls = (id,task)=>{
+        setEditing(false)
+        axios.put(`http://127.0.0.1:8000/api/task/${id}/`,task).then(res=>{
+            setData(data.map((prv)=>prv.id===id? res.data : prv))
+
+        }).catch(error=>console.log(error.message))
+    }
+    
     return(
         <>
         <div className="container">
@@ -37,21 +46,32 @@ function TaskList(){
                 ))}
                 </tbody>
             </table>
-            {editing ? <EditForm curTask={editDtls}/>:null}
+            {editing ? <EditForm curTask={editDtls} updatetask={updatedtls}/>:null}
         </div>
         </>
     )
 }
 
-const EditForm=({curTask})=>{
+const EditForm=({curTask,updatetask})=>{
     console.log('EditForm',curTask);
     const [task,setTask] = useState(curTask)
 
+
+    const  handlechange = (e) =>{
+        const{name,value} = e.target
+        setTask({...task,[name]:value})
+    } 
+    
+    const handlesubmit = (e) =>{
+        e.preventDefault()
+        updatetask(task.id,task)
+    }
+
     return(
         <>
-            <form>
-                <input type="text" name="task" id="task" value={task.title}/>
-                <input type="text" name="dis" id="dis" value={task.dis} />
+            <form onSubmit={handlesubmit}>
+                <input type="text" name="title" id="title" value={task.title} onChange={handlechange}/>
+                <input type="text" name="dis" id="dis" value={task.dis} onChange={handlechange}/>
                 <input type="submit" value="update"  />
             </form>
         </>
